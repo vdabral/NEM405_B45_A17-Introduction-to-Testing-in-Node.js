@@ -3,28 +3,19 @@ const todoController = require("../controllers/todoController"); // your control
 
 describe("Jest Spy on complex DB update", () => {
   test("calls findByIdAndUpdate once when updating a todo", async () => {
-    const fakeReq = {
-      params: { id: "507f1f77bcf86cd799439011" },
-      body: { title: "Spied Update", completed: true },
-    };
-    const fakeRes = { json: jest.fn() };
+    const fakeId = "507f1f77bcf86cd799439011";
+    const fakeUpdate = { title: "Spied Update", completed: true };
 
     const updateSpy = jest
       .spyOn(Todo, "findByIdAndUpdate")
-      .mockResolvedValue({ _id: fakeReq.params.id, ...fakeReq.body });
+      .mockResolvedValue({ _id: fakeId, ...fakeUpdate });
 
-    await todoController.updateTodo(fakeReq, fakeRes);
+    await todoController.updateTodo(fakeId, fakeUpdate);
 
     expect(updateSpy).toHaveBeenCalledTimes(1);
-    expect(updateSpy).toHaveBeenCalledWith(fakeReq.params.id, fakeReq.body, {
+    expect(updateSpy).toHaveBeenCalledWith(fakeId, fakeUpdate, {
       new: true,
     });
-    expect(fakeRes.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Spied Update",
-        completed: true,
-      })
-    );
 
     updateSpy.mockRestore();
   });

@@ -8,20 +8,6 @@ const app = express();
 // Middleware to parse JSON
 app.use(express.json());
 
-// Connect to MongoDB
-const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/tododb";
-
-mongoose
-  .connect(mongoURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-    process.exit(1); // Exit on DB connection failure
-  });
-
 // Use To-Do routes
 app.use("/todos", todoRoutes);
 
@@ -35,10 +21,25 @@ app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
-const PORT = process.env.PORT || 3000;
+module.exports = app;
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
-
-module.exports = app; // Export app for testing
+// Only connect and start server if run directly (not required by tests)
+if (require.main === module) {
+  const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/tododb";
+  mongoose
+    .connect(mongoURI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    })
+    .then(() => {
+      console.log("Connected to MongoDB");
+      const PORT = process.env.PORT || 3000;
+      app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+      });
+    })
+    .catch((err) => {
+      console.error("MongoDB connection error:", err);
+      process.exit(1);
+    });
+}
